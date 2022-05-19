@@ -4,7 +4,7 @@ const ThoughtSchema = new Schema(
   {
     thoughtText: {
       type: String,
-      required: "Username is Required",
+      required: "Thought is required!",
       minlength: 1,
       maxlength: 280,
     },
@@ -36,10 +36,14 @@ const ThoughtSchema = new Schema(
       },
     ],
   },
+
   {
     timestamps: true,
   }
 );
+ThoughtSchema.virtual("reactionCount").get(function () {
+  return this.reactions.length;
+});
 
 const Thought = model("Thought", ThoughtSchema);
 
