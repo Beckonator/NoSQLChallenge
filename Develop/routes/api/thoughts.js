@@ -1,10 +1,9 @@
 const router = require("express").Router();
-const { Thought } = require("../../models");
+const { Thought, User } = require("../../models");
 
-// The `/api/tags` endpoint
-
+// to get all thoughts
 router.get("/", (req, res) => {
-  Thought.findAll()
+  Thought.find()
     .then((thoughtData) => {
       res.json(thoughtData);
     })
@@ -13,30 +12,58 @@ router.get("/", (req, res) => {
     });
 });
 
-router.get("/:id", (req, res) => {
-  Thought.find({
-    where: {
-      id: req.params._id,
-    },
-  });
-});
-
-// a new thought
-router.post("/", (req, res) => {
-  Thought.create(req.body)
-    .then((userData) => {
-      res.json(userData);
+// to get a single thought by its `_id`
+router.get("/:thoughtId", (req, res) => {
+  Thought.find({ _id: req.params.thoughtId })
+    .then((thoughtData) => {
+      res.json(thoughtData);
     })
     .catch((err) => {
       res.status(500).json(err);
     });
 });
+
+// to create a new thought (don't forget to push the created thought's `_id` to the associated user's `thoughts` array field)
+router.post("/:userId", (req, res) => {
+  Thought.create(req.body)
+    .then((thoughtData) => {
+      const thoughtId = thoughtData._id;
+      return User.findByIdAndUpdate(
+        req.params.userId,
+        {
+          $push: { thoughts: thoughtId },
+        },
+        {
+          new: true,
+        }
+      );
+    })
+    .then((thoughtData) => {
+      res.json(thoughtData);
+    })
+    .catch((err) => {
+      res.status(500).json(err);
+    });
+});
+// to update a thought by its `_id`
 router.put("/:id", (req, res) => {
-  // update a tag's name by its `id` value
+  Thought.updateOne(
+    {
+      thoughtText: req.body.thoughtText,
+      username: req.body.username,
+      reactions: req.body.reactions,
+    },
+    {
+      where: {},
+    }
+  );
 });
 
-router.delete("/:id", (req, res) => {
-  // delete on tag by its `id` value
-});
+// to remove a thought by its `_id`
+router.delete("/:id", (req, res) => {});
+
+// to create a reaction stored in a single thought's `reactions` array field
+
+// to pull and remove a reaction by the reaction's `reactionId` value
 
 module.exports = router;

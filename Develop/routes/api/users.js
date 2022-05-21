@@ -1,10 +1,9 @@
 const router = require("express").Router();
 const { User } = require("../../models");
 
-// The `/api/categories` endpoint
-// get all users
+// all users
 router.get("/", (req, res) => {
-  User.findAll()
+  User.find()
     .then((userData) => {
       res.json(userData);
     })
@@ -32,18 +31,19 @@ router.post("/", (req, res) => {
       res.status(500).json(err);
     });
 });
-// update a category by its `_id` value
+// to update a user by its `_id`
 router.put("/:id", (req, res) => {
-  User.update(
+  User.updateOne(
     {
-      // All the fields you can update and the data attached to the request body.
+      // all the fields you can update and the data attached to the request body.
+      username: req.body.username,
       email: req.body.email,
       thoughts: req.body.thoughts,
       friends: req.body.friends,
     },
     {
       where: {
-        username: req.params.username,
+        _id: req.params.id,
       },
     }
   )
@@ -54,11 +54,11 @@ router.put("/:id", (req, res) => {
       res.status(500).json(err);
     });
 });
-// delete a category by its `_id` value
+// to remove user by its `_id`
 router.delete("/:id", (req, res) => {
-  User.destroy({
+  User.deleteOne({
     where: {
-      username: req.params.username,
+      _id: req.params.id,
     },
   })
     .then((deletedUser) => {
@@ -68,5 +68,40 @@ router.delete("/:id", (req, res) => {
       res.status(500).json(err);
     });
 });
-
+// to add a new friend to a user's friend list
+router.post("/:userId/friends/:friendId", (req, res) => {
+  User.findByIdAndUpdate(
+    req.params.userId,
+    {
+      $push: { friends: req.params.friendId },
+    },
+    {
+      new: true,
+    }
+  )
+    .then((userData) => {
+      res.json(userData);
+    })
+    .catch((err) => {
+      res.status(500).json(err);
+    });
+});
+// to remove a friend from a user's friend list
+router.delete("/:userId/friends/:friendId", (req, res) => {
+  User.findOneAndDelete(
+    req.params.userId,
+    {
+      $pull: { friends: req.params.friendId },
+    },
+    {
+      new: true,
+    }
+  )
+    .then((userData) => {
+      res.json(userData);
+    })
+    .catch((err) => {
+      res.status(500).json(err);
+    });
+});
 module.exports = router;
